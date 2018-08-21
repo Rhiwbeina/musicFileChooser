@@ -2,15 +2,17 @@ package com.example.davidladd.musicfilechooser;
 
 import android.content.SharedPreferences;
 import android.os.Handler;
-import android.preference.Preference;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -20,14 +22,14 @@ import java.util.ArrayList;
 
 public class dirMTbrowse extends AppCompatActivity {
     private static dirMTbrowse instance;
-    private TextView mTextMessage;
-    private android.support.v7.widget.RecyclerView mFileList;
+    private EditText mTextMessage;
+    //private android.support.v7.widget.RecyclerView mFileList;
     private static final String TAG = "Dave";
     private ArrayList<String> mNames = new ArrayList<>();
     private ArrayList<Integer> mIcons = new ArrayList<>();
     private static recyclerViewAdapter adapter;
-    private String path = "";
-    private File directory = new File(path);
+    //private String path = "";
+    //private File directory = new File(path);
     public ProgressBar progressBarLoading;
     private Handler mHandler;
     private SharedPreferences mPreferences;
@@ -42,24 +44,37 @@ public class dirMTbrowse extends AppCompatActivity {
         setContentView(R.layout.activity_dir_mtbrowse);
         mTextMessage = findViewById(R.id.pathText);
         mPreferences = getSharedPreferences("daves", MODE_PRIVATE);
-        path = mPreferences.getString("path", "/");
+        //path = mPreferences.getString("pathToLibrary", "/");
+        mTextMessage.setText(mPreferences.getString("pathToLibrary", "/"));
 
         View backBar = findViewById(R.id.copy_of_parent_layout); // click anywhere back icon or text or container
         backBar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                wrapListNewDir("Back");
+                tryBackPath();
             }
         });
 
-        final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+    mTextMessage.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+    @Override
+    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+        Log.d(TAG, "onEditorAction: actionID = " + actionId);
+        if (actionId == EditorInfo.IME_ACTION_DONE || actionId == 0) {
+            //path = mTextMessage.getText().toString();
+            tryAbsPath();
+        }
+        return false;
+    }
+});
+
+    final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Toast.makeText(dirMTbrowse.getInstance() , "set path to " + mTextMessage.getText(),
                         Toast.LENGTH_LONG).show();
                 SharedPreferences.Editor spedit = mPreferences.edit();
-                spedit.putString("path", path);
+                spedit.putString("pathToLibrary", mTextMessage.getText().toString());
                 spedit.commit();
                 finish();
             }
@@ -68,7 +83,6 @@ public class dirMTbrowse extends AppCompatActivity {
         progressBarLoading = findViewById(R.id.progressBar);
         mHandler = new Handler();
         instance = this;
-
         initDlist();
     }
 
@@ -76,18 +90,16 @@ public class dirMTbrowse extends AppCompatActivity {
         mNames.add("flipin");
         mIcons.add(R.drawable.ic_check_black_24dp);
         dinitRecyclerView();
-        wrapListNewDir("");
+        tryAbsPath();
     }
 
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-
             case android.R.id.home:
                 onBackPressed();
                 finish();
                 return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -100,12 +112,35 @@ public class dirMTbrowse extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
     }
 
-    public void wrapListNewDir(String nDir){
-        //mTextMessage.setText("loading");
+    public void tryBackPath(){
+        String testPath = mTextMessage.getText().toString();
+        if (testPath.lastIndexOf("/") != 0){
+            testPath = testPath.substring(0, testPath.lastIndexOf("/"));
+        } else {
+            testPath = "/";
+        }
         progressBarLoading.setVisibility(View.VISIBLE);
+        listDirThread myp = new listDirThread(testPath);
+        new Thread(myp).start();
+    }
+
+    public void tryAbsPath(){
+        String testPath = mTextMessage.getText().toString();
+        progressBarLoading.setVisibility(View.VISIBLE);
+        listDirThread myp = new listDirThread(testPath);
+        new Thread(myp).start();
+    }
+
+    public void tryAddToPath(String nDir){
+        progressBarLoading.setVisibility(View.VISIBLE);
+        String testPath = mTextMessage.getText().toString();
+        if(testPath.endsWith("/")){
+            nDir = testPath + nDir;
+        } else {
+            nDir = testPath + "/" + nDir;
+        }
         listDirThread myp = new listDirThread(nDir);
         new Thread(myp).start();
-
     }
 
     class listDirThread implements Runnable {
@@ -114,30 +149,15 @@ public class dirMTbrowse extends AppCompatActivity {
         listDirThread(String nndd) {
             this.nDir = nndd;
         }
-
         public void run() {
-            String lastAbleToRead = path;
-            if (nDir == "Back"){
-                if (path.length() > 1){
-                    path = path.substring(0, path.lastIndexOf("/") - 1); // remove trailing slash
-                    path = path.substring(0, path.lastIndexOf("/") + 1); // remove last dir but leave preceeding slash
-                }
-            }
-            else {
-                path = path  + nDir + "/";
-            }
-
-            Log.d("Files", "Path extending " + path);
-            File tDir = new File(path);
+            Log.d("Files", "trying path = " + nDir);
+            File tDir = new File(nDir);
             if (tDir.isFile()){
-                //MainActivity.getInstance().prepPlayer(path);
-
                 mHandler.post(
                         new Runnable() {
                             @Override
                             public void run() {
-                                MainActivity.getInstance().songAudioPlayer.loadPlay(path);
-
+                                MainActivity.getInstance().songAudioPlayer.loadPlay(nDir);
                             }
                         }
                 );
@@ -149,7 +169,7 @@ public class dirMTbrowse extends AppCompatActivity {
                 files = tDir.listFiles();
             }
             catch (Exception sss){
-                Log.d("Files", "security exception " + path);
+                Log.d("Files", "security exception " + nDir);
                 return;
             }
 
@@ -158,7 +178,7 @@ public class dirMTbrowse extends AppCompatActivity {
             }
             catch (Exception eee){
                 Log.d("Files", "some exception " + eee);
-                path = lastAbleToRead;
+                //path = lastAbleToRead;
                 mHandler.post(
                         new Runnable() {
                             @Override
@@ -169,15 +189,11 @@ public class dirMTbrowse extends AppCompatActivity {
                             }
                         }
                 );
-
                 return;
             }
 
-            mNames.clear();
-            mIcons.clear();
-            //mTextMessage.setText(path + " count= " + files.length );
-            //mNames.add("Back");
-            //mIcons.add(R.drawable.ic_undo_black_24dp);
+        mNames.clear();
+        mIcons.clear();
 
             for (int i=0; i<files.length; ++i){
                 if(files[i].isDirectory()){
@@ -189,15 +205,14 @@ public class dirMTbrowse extends AppCompatActivity {
                     mNames.add(files[i].getName());
                     mIcons.add(R.drawable.ic_info_outline_black_24dp);
                 }
-
-
             }
 
             mHandler.post(
                     new Runnable() {
                         @Override
                         public void run() {
-                            mTextMessage.setText(path);
+                            //path = nDir;
+                            mTextMessage.setText(nDir);
                             adapter.notifyDataSetChanged();
                             progressBarLoading.setVisibility(View.INVISIBLE);
                         }

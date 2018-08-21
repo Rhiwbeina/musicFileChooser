@@ -20,11 +20,4 @@
 
     <include layout="@layout/daudioplayer"/>
 
-    <fragment
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/dfrag"
-        android:name="com.example.davidladd.musicfilechooser.dfragment"
-        />
-
 </android.support.constraint.ConstraintLayout>

@@ -48,23 +48,22 @@
 
     </android.support.v7.widget.RecyclerView>
 
-    <TextView
+    <EditText
         android:id="@+id/pathText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:ems="10"
-        android:inputType="textPersonName"
-        android:text="Name"
+        android:inputType="text"
+        android:text="Path to mp3 library"
         android:textColor="@color/colorPrimaryDark"
         android:textSize="14sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        tools:layout_editor_absoluteY="8dp"
 
 
-        />
+        tools:layout_editor_absoluteY="8dp" />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"

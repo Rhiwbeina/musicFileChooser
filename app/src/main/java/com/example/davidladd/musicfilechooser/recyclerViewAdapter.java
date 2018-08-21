@@ -46,7 +46,7 @@ public class recyclerViewAdapter extends RecyclerView.Adapter<recyclerViewAdapte
             public void onClick(View view) {
                 Log.d(TAG, "onClick: clicked on: " + mitem_titles.get(position));
                 //Toast.makeText(mContext, mitem_titles.get(position), Toast.LENGTH_SHORT).show();
-                dirMTbrowse.getInstance().wrapListNewDir(mitem_titles.get(position));
+                dirMTbrowse.getInstance().tryAddToPath(mitem_titles.get(position));
                //progressBarLoading.setVisibility(View.VISIBLE);
 
             }
