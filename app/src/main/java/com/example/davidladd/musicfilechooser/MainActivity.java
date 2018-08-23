@@ -63,6 +63,8 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            Intent ScanFilesToDbIntent = new Intent(getApplicationContext(), ScanFilesToDb.class);
+            startActivity(ScanFilesToDbIntent);
             return true;
         }
 

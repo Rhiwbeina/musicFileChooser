@@ -19,7 +19,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".dirMTbrowse" android:parentActivityName=".MainActivity"></activity>
+        <activity
+            android:name=".dirMTbrowse"
+            android:parentActivityName=".MainActivity" />
+        <activity android:name=".ScanFilesToDb"></activity>
     </application>
 
 </manifest>
