@@ -59,7 +59,8 @@ public class dirMTbrowse extends AppCompatActivity {
     @Override
     public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
         Log.d(TAG, "onEditorAction: actionID = " + actionId);
-        if (actionId == EditorInfo.IME_ACTION_DONE || actionId == 0) {
+        if (actionId == EditorInfo.IME_ACTION_DONE || actionId == 0 || actionId == EditorInfo.IME_ACTION_NEXT
+                || actionId == EditorInfo.IME_ACTION_GO) {
             //path = mTextMessage.getText().toString();
             tryAbsPath();
         }

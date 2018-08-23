@@ -56,13 +56,14 @@
         android:layout_marginStart="8dp"
         android:ems="10"
         android:inputType="text"
+        android:maxLines="1"
         android:text="Path to mp3 library"
         android:textColor="@color/colorPrimaryDark"
         android:textSize="14sp"
         app:layout_constraintEnd_toEndOf="parent"
+
+
         app:layout_constraintStart_toStartOf="parent"
-
-
         tools:layout_editor_absoluteY="8dp" />
 
     <android.support.design.widget.FloatingActionButton
