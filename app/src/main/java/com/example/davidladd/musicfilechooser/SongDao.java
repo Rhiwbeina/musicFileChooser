@@ -5,6 +5,7 @@ import android.arch.persistence.room.Delete;
 import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.OnConflictStrategy;
 import android.arch.persistence.room.Query;
+import android.database.Cursor;
 
 import java.util.List;
 
@@ -18,6 +19,12 @@ public interface SongDao {
 
     @Query("SELECT COUNT(*) FROM Song WHERE 1")
     Integer rowCount();
+
+    @Query("SELECT * FROM Song")
+    Cursor getAllToCursor();
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void updateId3(Song song);
 
     @Insert
     void insertAll(Song... songs);

@@ -14,7 +14,7 @@
         android:layout_marginTop="8dp"
         android:text="Scan files to db"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/textViewInfo" />
 
     <Button
         android:id="@+id/buttWipeDb"
@@ -24,7 +24,7 @@
         android:layout_marginTop="8dp"
         android:text="Wipe Db"
         app:layout_constraintStart_toEndOf="@+id/buttScan"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/textViewInfo" />
 
     <Button
         android:id="@+id/buttDbStats"
@@ -47,7 +47,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/buttDbStats" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/buttAbort"
@@ -58,4 +58,15 @@
         android:text="Abort"
         app:layout_constraintStart_toEndOf="@+id/buttDbStats"
         app:layout_constraintTop_toBottomOf="@+id/buttWipeDb" />
+
+    <Button
+        android:id="@+id/buttId3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:capitalize="none"
+        android:text="id3 to Db"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/buttDbStats" />
 </android.support.constraint.ConstraintLayout>

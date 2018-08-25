@@ -2,7 +2,9 @@ package com.example.davidladd.musicfilechooser;
 
 import android.arch.persistence.room.Room;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteException;
+import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
@@ -14,13 +16,19 @@ import android.widget.TextView;
 
 import java.io.File;
 
+import static android.media.MediaMetadataRetriever.METADATA_KEY_ALBUM;
+import static android.media.MediaMetadataRetriever.METADATA_KEY_ARTIST;
+import static android.media.MediaMetadataRetriever.METADATA_KEY_TITLE;
+import static android.media.MediaMetadataRetriever.METADATA_KEY_YEAR;
+
 public class ScanFilesToDb extends AppCompatActivity {
     public Handler mainHandler = new Handler();
-    Button buttScan, buttWipeDb, buttDbStats, buttAbort;
+    Button buttScan, buttWipeDb, buttDbStats, buttAbort, buttId3;
     TextView textViewInfo;
     AppDatabase db;
     private SharedPreferences mPreferences;
     private runableScanDir SDrunable;
+    private RunnableId3ToDb Id3runable;
     private static String TAG = "Dave";
 
     @Override
@@ -39,7 +47,6 @@ public class ScanFilesToDb extends AppCompatActivity {
         buttScan.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 // Code here executes on main thread after Song presses button
-                //varmytextbox.setText("Yay Scan dir");
                 //runableAdd runable = new runableAdd();
                 //runableScanDir
                 SDrunable = new runableScanDir(mPreferences.getString("pathToLibrary", "/"));
@@ -78,9 +85,54 @@ public class ScanFilesToDb extends AppCompatActivity {
             }
         });
 
+        buttId3 = findViewById(R.id.buttId3);
+        buttId3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Id3runable = new RunnableId3ToDb();
+                new Thread(Id3runable).start();
+
+            }
+        });
 
         textViewInfo = findViewById(R.id.textViewInfo);
 
+    }
+
+    class RunnableId3ToDb implements Runnable{
+        @Override
+        public void run() {
+            Cursor cursor = db.songDao().getAllToCursor();
+            cursor.moveToFirst();
+            while (cursor.isAfterLast() == false)
+            {
+                final String songPath = cursor.getString(cursor.getColumnIndex("song_path"));
+                final int sUid = cursor.getInt(cursor.getColumnIndex("uid"));
+
+                MediaMetadataRetriever myId3Reader = new MediaMetadataRetriever();
+                myId3Reader.setDataSource(songPath);
+                final String sArtist = myId3Reader.extractMetadata(METADATA_KEY_ARTIST);
+                final String sTitle = myId3Reader.extractMetadata(METADATA_KEY_TITLE);
+                final String sAlbum = myId3Reader.extractMetadata(METADATA_KEY_ALBUM);
+                final String sYear = myId3Reader.extractMetadata(METADATA_KEY_YEAR);
+
+                final Song uSong = new Song();
+                uSong.setUid(sUid);
+                uSong.setSongPath(songPath);
+                uSong.setTitle(sTitle);
+                uSong.setAttemptId3(false);
+
+                db.songDao().updateId3(uSong);
+                mainHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        textViewInfo.setText("addded id3  = " + uSong.toString());
+
+                    }
+                });
+                cursor.moveToNext();
+            }
+        }
     }
 
     class RunnableWipeDb implements Runnable{
@@ -107,11 +159,11 @@ public class ScanFilesToDb extends AppCompatActivity {
         public void run() {
             try{
                 final Integer count = db.songDao().rowCount();
+
                 mainHandler.post(new Runnable() {
                     @Override
                     public void run() {
                         textViewInfo.setText("Row count = " + String.valueOf(count));
-
                     }
                 });
             }
@@ -151,7 +203,7 @@ public class ScanFilesToDb extends AppCompatActivity {
             mainHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    buttScan.setText(String.valueOf(fileCounter));
+                    textViewInfo.setText(String.valueOf(fileCounter));
                     //varmytextbox.append("\n" + f.getName());
                 }
             });
@@ -181,7 +233,7 @@ public class ScanFilesToDb extends AppCompatActivity {
                             mainHandler.post(new Runnable() {
                                 @Override
                                 public void run() {
-                                    buttScan.setText(String.valueOf(fileCounter));
+                                    textViewInfo.setText(String.valueOf(fileCounter));
                                     //varmytextbox.append("\n" + f.getName());
                                 }
                             });
@@ -196,7 +248,8 @@ public class ScanFilesToDb extends AppCompatActivity {
                             if (f.getName().toLowerCase().endsWith(".mp3")){
                                 Song Song = new Song();
                                 Song.setSongPath(f.getAbsolutePath());
-                                Song.setLastName(f.getName());
+                                Song.setTitle(f.getName());
+                                Song.setAttemptId3(true);
                                 //db.SongDao().insertAll(Song);
                                 songCounter++;
                                 addaSong(db, Song);
